@@ -479,7 +479,6 @@
             width: 100%;
             max-width: 650px;
             aspect-ratio: 0.86;
-            /* replaces hardcoded height of 750px */
             transform-style: preserve-3d;
         }
 
@@ -503,7 +502,7 @@
 
         .photo-stage img {
             position: absolute;
-            left: -10%;
+            left: -32%;
             bottom: 0;
             z-index: 1;
             width: 120%;
@@ -702,7 +701,8 @@
 
         .ik {
             font-size: .71rem;
-            color: var(--subtle);
+            font-weight: 700;
+            color: var(--muted);
             letter-spacing: .3px;
             margin-bottom: .1rem;
         }
@@ -921,6 +921,8 @@
         .tlitem {
             position: relative;
             margin-bottom: 3rem;
+            padding: 1.8rem;
+            border-radius: 16px;
             opacity: 0;
             transform: translateX(-24px);
             transition: .7s ease;
@@ -935,7 +937,7 @@
             content: '';
             position: absolute;
             left: -2.2rem;
-            top: 5px;
+            top: 2.1rem;
             width: 16px;
             height: 16px;
             border-radius: 50%;
@@ -1316,15 +1318,20 @@
             }
 
             .hero-desc,
-            .hero-actions,
-            .hero-stats,
             .hero-divider {
                 margin-left: auto;
                 margin-right: auto;
             }
 
-            .hero-actions {
+            .hero-actions,
+            .hero-stats {
                 justify-content: center;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-stats {
+                gap: 2rem;
             }
 
             .about-grid {
@@ -1390,6 +1397,31 @@
                 height: auto;
                 aspect-ratio: 0.86;
                 margin: 0 auto;
+            }
+
+            .pcard {
+                padding: 1.5rem;
+            }
+
+            .sbox {
+                padding: 1rem;
+            }
+
+            .tlitem {
+                padding: 1.4rem;
+            }
+
+            .tlitem::before {
+                top: 1.6rem;
+            }
+
+            .sn {
+                font-size: 1.6rem;
+            }
+
+            .hero-stats {
+                gap: 1.2rem;
+                flex-wrap: wrap;
             }
         }
 
@@ -1810,67 +1842,158 @@
     </footer>
 
     <script>
-        /* ── WEB-BALL NETWORK CANVAS ── */
+        /* ── GALAXY CANVAS ── */
         (() => {
             const c = document.getElementById('bg'), ctx = c.getContext('2d');
-            let W, H, mx = -9999, my = -9999, t = 0;
+            let W, H, mx = 0, my = 0, t = 0;
             const resize = () => { W = c.width = innerWidth; H = c.height = innerHeight; };
             resize(); addEventListener('resize', resize);
-            document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+            document.addEventListener('mousemove', e => {
+                mx = (e.clientX - W / 2) * 0.03;
+                my = (e.clientY - H / 2) * 0.03;
+            });
 
-            /* aurora soft backdrop — warm orange + teal */
-            const aura = [
-                { px: .12, py: .2, r: 360, h: 22, a: .07 },
-                { px: .82, py: .12, r: 300, h: 30, a: .06 },
-                { px: .45, py: .75, r: 380, h: 168, a: .05 },
-                { px: .92, py: .82, r: 270, h: 18, a: .055 }
+            /* Galactic Core Aura */
+            const coreAuras = [
+                { r: 450, h: 22, a: 0.04 },  /* Vivid Orange dust */
+                { r: 650, h: 180, a: 0.02 }, /* Deep Teal dust */
+                { r: 200, h: 40, a: 0.07 }   /* Golden hot core */
             ];
 
-            /* premium ambient stardust */
-            const E = 120;
-            const embers = Array.from({ length: E }, () => ({
-                x: Math.random() * 2500,
-                y: Math.random() * 1500,
-                s: Math.random() * 1.5 + 0.5,
-                vy: -Math.random() * 0.4 - 0.1,
-                vx: (Math.random() - 0.5) * 0.2,
-                a: Math.random() * 0.5 + 0.1,
-                h: Math.random() > 0.5 ? 26 : 170 /* Golden/Teal */
-            }));
+            /* Spiral Galaxy Stars */
+            const S = 500;
+            const stars = Array.from({ length: S }, () => {
+                // Focus distribution heavily towards the dense galactic center
+                const radius = Math.pow(Math.random(), 1.5) * 1400;
+                // Random angle but lightly twisted by radius to form subtle spiral illusion
+                const angle = (Math.random() * Math.PI * 2) + (radius * 0.001);
 
+                return {
+                    a: angle,
+                    r: radius,
+                    s: Math.random() * 1.5 + 0.2, // size
+                    // Physics: inner stars orbit faster than outer stars
+                    v: 0.0003 + (1.2 / (radius + 50)),
+                    // Colors: mostly blue/white (220), some orange/gold (26), some teal (180)
+                    h: Math.random() > 0.3 ? 220 : (Math.random() > 0.5 ? 26 : 180),
+                    alpha: Math.random() * 0.7 + 0.3,
+                    twinkleSpeed: Math.random() * 0.05 + 0.02
+                };
+            });
+
+            let shootingStars = [];
+
+            /* Orbiting Planets */
+            const planets = [
+                { r: 200, a: Math.random() * 6, s: 4, v: 0.0025, h: 0, ring: false },    /* Tiny gray inner rocky world */
+                { r: 350, a: Math.random() * 6, s: 6, v: 0.0015, h: 22, ring: false },   /* Blazing orange planet */
+                { r: 450, a: Math.random() * 6, s: 7, v: 0.0011, h: 10, ring: false },   /* Red rusted mars-like planet */
+                { r: 550, a: Math.random() * 6, s: 14, v: 0.0008, h: 180, ring: true },  /* Medium cyan gas giant with ring */
+                { r: 700, a: Math.random() * 6, s: 12, v: 0.0006, h: 45, ring: true },   /* Golden yellow ringed world */
+                { r: 850, a: Math.random() * 6, s: 20, v: 0.0004, h: 280, ring: true },  /* Massive purple/pink giant with rings */
+                { r: 1100, a: Math.random() * 6, s: 9, v: 0.0002, h: 200, ring: false }, /* Distant icy blue planet */
+                { r: 1350, a: Math.random() * 6, s: 5, v: 0.0001, h: 230, ring: false }  /* Farthest dark-blue dwarf planet */
+            ];
 
             const draw = () => {
                 ctx.clearRect(0, 0, W, H);
-                t += .005;
+                t += 1;
 
-                /* soft aurora */
-                aura.forEach((a, i) => {
-                    const ax = a.px * W + Math.sin(t + i * 1.5) * 70;
-                    const ay = a.py * H + Math.cos(t * 1.2 + i) * 45;
-                    const g = ctx.createRadialGradient(ax, ay, 0, ax, ay, a.r);
-                    g.addColorStop(0, `hsla(${a.h},62%,64%,${a.a})`);
+                // Center of the galaxy (slightly offset by mouse parallax)
+                const cx = W / 2 + mx;
+                const cy = H / 2 + my;
+
+                /* 1. Draw Glowing Core */
+                coreAuras.forEach((aura, i) => {
+                    const ax = cx + Math.sin(t * 0.002 + i) * 30;
+                    const ay = cy + Math.cos(t * 0.003 + i) * 30;
+                    const g = ctx.createRadialGradient(ax, ay, 0, ax, ay, aura.r);
+                    g.addColorStop(0, `hsla(${aura.h}, 80%, 65%, ${aura.a})`);
                     g.addColorStop(1, 'hsla(0,0%,100%,0)');
-                    ctx.beginPath(); ctx.arc(ax, ay, a.r, 0, Math.PI * 2);
+                    ctx.beginPath(); ctx.arc(ax, ay, aura.r, 0, Math.PI * 2);
                     ctx.fillStyle = g; ctx.fill();
                 });
 
-                /* ambient embers drift */
-                embers.forEach(e => {
-                    e.y += e.vy;
-                    e.x += Math.sin(t * 2 + e.s) * 0.3 + e.vx;
+                /* 2. Mechanics for Shooting Stars */
+                if (Math.random() < 0.015) {
+                    shootingStars.push({
+                        x: Math.random() * W * 1.5, y: -50,
+                        vx: -(Math.random() * 6 + 4), vy: Math.random() * 6 + 4,
+                        life: 1.0
+                    });
+                }
 
-                    if (e.y < -10) { e.y = H + 10; e.x = Math.random() * W; }
-                    if (e.x < -10) e.x = W + 10;
-                    if (e.x > W + 10) e.x = -10;
+                shootingStars.forEach((ss, i) => {
+                    ss.x += ss.vx; ss.y += ss.vy; ss.life -= 0.015;
+                    if (ss.life <= 0) { shootingStars.splice(i, 1); return; }
+                    ctx.beginPath();
+                    ctx.moveTo(ss.x, ss.y);
+                    ctx.lineTo(ss.x - ss.vx * 4, ss.y - ss.vy * 4);
+                    // Fade out color trail
+                    const grad = ctx.createLinearGradient(ss.x, ss.y, ss.x - ss.vx * 4, ss.y - ss.vy * 4);
+                    grad.addColorStop(0, `rgba(255, 255, 255, ${ss.life})`);
+                    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                });
 
-                    /* extremely subtle microscopic parallax evade */
-                    const dx = e.x - mx, dy = e.y - my, d = Math.hypot(dx, dy);
-                    if (d < 150 && d > 0) { e.x += (dx / d) * 0.5; e.y += (dy / d) * 0.5; }
+                /* 3. Orbiting Galaxy Stars (Tilting the elliptical orbit by y * 0.5) */
+                stars.forEach(s => {
+                    s.a += s.v; // Rotate
+
+                    // Elliptical shape creates 3D tilt perspective
+                    const sx = cx + Math.cos(s.a) * s.r;
+                    const sy = cy + Math.sin(s.a) * (s.r * 0.5);
+
+                    const twinkle = Math.sin(t * s.twinkleSpeed + s.a * 10) * 0.4 + 0.6;
 
                     ctx.beginPath();
-                    ctx.arc(e.x, e.y, e.s, 0, Math.PI * 2);
-                    ctx.fillStyle = `hsla(${e.h}, 90%, 65%, ${e.a})`;
+                    ctx.arc(sx, sy, s.s, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${s.h}, 90%, 80%, ${s.alpha * twinkle})`;
                     ctx.fill();
+                });
+
+                /* 4. Draw Orbiting Planets */
+                planets.forEach(p => {
+                    p.a += p.v;
+                    const px = cx + Math.cos(p.a) * p.r;
+                    const py = cy + Math.sin(p.a) * (p.r * 0.5); // same galactic plane tilt
+                    const tilt = Math.PI * 0.15; // fixed planetary axis tilt
+
+                    // Draw back-half of ring (behind planet)
+                    if (p.ring) {
+                        ctx.beginPath();
+                        ctx.ellipse(px, py, p.s * 2.4, p.s * 0.6, tilt, Math.PI, Math.PI * 2);
+                        ctx.strokeStyle = `hsla(${p.h}, 40%, 60%, 0.3)`;
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                    }
+
+                    // Draw 3D-lit Spherical Planet
+                    const g = ctx.createRadialGradient(px - p.s * 0.3, py - p.s * 0.3, 0, px, py, p.s);
+                    g.addColorStop(0, `hsla(${p.h}, 90%, 75%, 1)`); // Bright highlight facing top-left
+                    g.addColorStop(0.6, `hsla(${p.h}, 60%, 30%, 1)`); // Mid shadow
+                    g.addColorStop(1, `hsla(${p.h}, 50%, 5%, 1)`); // Deep space shadow on bottom-right
+
+                    ctx.beginPath();
+                    ctx.arc(px, py, p.s, 0, Math.PI * 2);
+                    ctx.fillStyle = g;
+                    ctx.fill();
+
+                    // Draw front-half of ring (overlaps planet)
+                    if (p.ring) {
+                        ctx.beginPath();
+                        ctx.ellipse(px, py, p.s * 2.4, p.s * 0.6, tilt, 0, Math.PI);
+                        ctx.strokeStyle = `hsla(${p.h}, 60%, 80%, 0.8)`;
+                        ctx.stroke();
+
+                        // Fainter outer ring line
+                        ctx.beginPath();
+                        ctx.ellipse(px, py, p.s * 2.8, p.s * 0.7, tilt, 0, Math.PI);
+                        ctx.strokeStyle = `hsla(${p.h}, 60%, 80%, 0.25)`;
+                        ctx.stroke();
+                    }
                 });
 
                 requestAnimationFrame(draw);
